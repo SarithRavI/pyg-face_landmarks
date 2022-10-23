@@ -17,7 +17,6 @@ import os
 from dataset import PygGraphPropPredDataset
 
 ### importing utils
-from utils import augment_edge
 from eval_helper import Evaluator
 
 multicls_criterion = torch.nn.MSELoss()
@@ -89,7 +88,7 @@ def main():
     parser = argparse.ArgumentParser(description='GNN baselines on ogbg-code2 data with Pytorch Geometrics')
     parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
-    parser.add_argument('--gnn', type=str, default='gcn-virtual',
+    parser.add_argument('--gnn', type=str, default='gcn',
                         help='GNN gin, gin-virtual, or gcn, or gcn-virtual (default: gcn-virtual)')
     parser.add_argument('--drop_ratio', type=float, default=0,
                         help='dropout ratio (default: 0)')
@@ -97,14 +96,14 @@ def main():
                         help='number of GNN message passing layers (default: 5)')
     parser.add_argument('--emb_dim', type=int, default=300,
                         help='dimensionality of hidden units in GNNs (default: 300)')
-    parser.add_argument('--batch_size', type=int, default=128,
+    parser.add_argument('--batch_size', type=int, default=5,
                         help='input batch size for training (default: 128)')
     parser.add_argument('--epochs', type=int, default=25,
                         help='number of epochs to train (default: 25)')
     parser.add_argument('--num_workers', type=int, default=0,
                         help='number of workers (default: 0)')
-    parser.add_argument('--dataset', type=str, default="ogbg-code2",
-                        help='dataset name (default: ogbg-code2)')
+    parser.add_argument('--dataset', type=str, default="pyg_face",
+                        help='dataset name (default: pyg_face)')
     parser.add_argument('--split_ratio', type=float, default=0.8,
                     help='Training data split ratio, Test and Val dataset are splitted equally from the rest')
 
@@ -132,6 +131,7 @@ def main():
     
     print('Using random split')
     perm = torch.randperm(len(dataset))
+    #  num_train, num_valid, num_test = 7047,1,1
     num_train, num_valid, num_test =int(len(dataset)*args.split_ratio), int(len(dataset)*(1-args.split_ratio)/2), int(len(dataset)*(1-args.split_ratio)/2)
     split_idx['train'] = perm[:num_train]
     split_idx['valid'] = perm[num_train:num_train+num_valid]
