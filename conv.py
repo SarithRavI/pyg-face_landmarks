@@ -160,7 +160,7 @@ class GNN_node_Virtualnode(torch.nn.Module):
     Output:
         node representations
     """
-    def __init__(self, num_layer, emb_dim, node_encoder, drop_ratio = 0.5, JK = "last", residual = False, gnn_type = 'gin'):
+    def __init__(self, num_layer,input_node_dim, input_edge_dim, emb_dim, drop_ratio = 0.5, JK = "last", residual = False, gnn_type = 'gin'):
         '''
             emb_dim (int): node embedding dimensionality
         '''
@@ -189,13 +189,28 @@ class GNN_node_Virtualnode(torch.nn.Module):
         ### List of MLPs to transform virtual node at every layer
         self.mlp_virtualnode_list = torch.nn.ModuleList()
 
+        # for layer in range(num_layer):
+        #     if gnn_type == 'gin':
+        #         self.convs.append(GINConv(emb_dim))
+        #     elif gnn_type == 'gcn':
+        #         self.convs.append(GCNConv(emb_dim))
+        #     else:
+        #         raise ValueError('Undefined GNN type called {}'.format(gnn_type))
+
+        #     self.batch_norms.append(torch.nn.BatchNorm1d(emb_dim))
         for layer in range(num_layer):
-            if gnn_type == 'gin':
-                self.convs.append(GINConv(emb_dim))
-            elif gnn_type == 'gcn':
-                self.convs.append(GCNConv(emb_dim))
+            if layer == 0:
+                if gnn_type == 'gin':
+                    self.convs.append(GINConv(emb_dim,input_node_dim=input_node_dim,input_edge_dim=input_edge_dim))
+                elif gnn_type == 'gcn':
+                    self.convs.append(GCNConv(emb_dim,input_node_dim=input_node_dim,input_edge_dim=input_edge_dim))
             else:
-                raise ValueError('Undefined GNN type called {}'.format(gnn_type))
+                if gnn_type == 'gin':
+                    self.convs.append(GINConv(emb_dim,input_node_dim=emb_dim,input_edge_dim=emb_dim))
+                elif gnn_type == 'gcn':
+                    self.convs.append(GCNConv(emb_dim,input_node_dim=emb_dim,input_edge_dim=emb_dim))
+                else:
+                    raise ValueError('Undefined GNN type called {}'.format(gnn_type))
 
             self.batch_norms.append(torch.nn.BatchNorm1d(emb_dim))
 
