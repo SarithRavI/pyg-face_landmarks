@@ -7,6 +7,7 @@ from torch_sparse import coalesce
 from torch_geometric.io import read_txt_array
 
 import os
+import pickle
 import numpy as np
 import pandas as pd
 from tqdm import tqdm
@@ -35,29 +36,63 @@ def split(data, batch):
 
 def read_graph_data(folder):
     # import images  
-    images = np.load(os.path.join(folder,"face_images.npz"))['face_images']
+
+    # get the format of the file inside the folder
+    # as a 'convention' .pkl file contains a list of images -> (# of images, height, width, channels)
+    # and .npz contains a map with key 'face_images' -> (height,width,channels, # images)
+    # do not contain files with both format types
+
+    fmt = [file[-3:] for file in os.listdir(folder) if (file[-3:]=='pkl' or file[-3:]=='npz')]
+    if fmt is 'npz':
+        images = np.load(os.path.join(folder,"face_images.npz"))['face_images']
+        tot_shape =images.shape
+        if  len(tot_shape) > 3: # this is for RGB
+            num_node_attr = tot_shape[2]
+        else:
+            num_node_attr = 1
+        num_images = len(images)
+    elif fmt is 'pkl':
+        with open(os.path.join(folder,"face_images.pkl"), "rb") as fp:   # Unpickling
+            images = pickle.load(fp)
+        tot_shape =images.shape
+        if  len(tot_shape) > 3: # this is for RGB
+            num_node_attr = tot_shape[3]
+        else:
+            num_node_attr = 1
+        num_images = tot_shape[-1]
+    
     # import graph labels
     graph_labels = pd.read_csv(os.path.join(folder,"facial_keypoints.csv")).to_numpy()
 
-    num_node_attr = 1 #equals number of channels
-    num_node_attr = 1 
+    # by default number of edge attributes are 1
+    num_edge_attr = 1
+
     num_labels = graph_labels.shape[-1]
     x = np.empty([0,num_node_attr])
     edge_index = np.empty([2,0])
-    edge_attr = np.empty([0,num_node_attr],dtype=np.float32)
+    edge_attr = np.empty([0,num_edge_attr],dtype=np.float32)
     node_graph_id=np.array([],dtype=np.int32)
     edge_slice = np.array([0])
     y = np.empty([0,num_labels],dtype=np.float32)
 
-    for img_inx in tqdm(range(images.shape[-1])):
-        img_matrix = images[:,:,img_inx]
+    for img_inx in tqdm(range(num_images)):
+        if fmt is 'pkl':
+            img_matrix = images[img_inx]
+        elif fmt is 'npz':
+            if len(tot_shape)>3:
+                img_matrix = images[:,:,:,img_inx]
+            else:
+                img_matrix = images[:,:,img_inx]
+
         img_graph = img_to_graph(img = img_matrix)
         img_to_pyg = from_scipy_sparse_matrix(img_graph)
 
         img_edge_index = img_to_pyg[0]
+        # since we are getting the edge attributes from pyg 
+        # we set the # of edge attributes to 1 by default
         img_edge_attr = img_to_pyg[1].reshape(1,-1)
             
-        img_node_attr = img_matrix.reshape(-1,1)
+        img_node_attr = img_matrix.reshape(-1,num_node_attr)
         x = np.vstack((x,img_node_attr))
         num_nodes = img_node_attr.shape[0] # number of nodes 
         # append node_graph_id 
