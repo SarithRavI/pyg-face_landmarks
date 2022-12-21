@@ -132,6 +132,7 @@ def main():
     print('Using random split')
     perm = torch.randperm(len(dataset))
     #  num_train, num_valid, num_test = 7047,1,1
+    # num_train, num_valid, num_test =int(len(dataset)*0.75), int(len(dataset)*0.15), int(len(dataset)*0.1)
     num_train, num_valid, num_test =int(len(dataset)*args.split_ratio), int(len(dataset)*(1-args.split_ratio)/2), int(len(dataset)*(1-args.split_ratio)/2)
     split_idx['train'] = perm[:num_train]
     split_idx['valid'] = perm[num_train:num_train+num_valid]
@@ -140,8 +141,9 @@ def main():
 
     ### automatic evaluator. takes dataset name as input
     #  Set this either to MSE or R2
+    # include keyword arg squared = True if mse otherwise rmse
     eval_metric = "MSE" 
-    evaluator = Evaluator(type=eval_metric,num_landmarks=num_landmarks)
+    evaluator = Evaluator(type=eval_metric,num_landmarks=num_landmarks,squared = True)
 
     train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
     valid_loader = DataLoader(dataset[split_idx["valid"]], batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)

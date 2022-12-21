@@ -2,7 +2,7 @@ from torchmetrics import R2Score,MeanSquaredError
 import torch
 
 class Evaluator:
-    def __init__(self,type="MSE",**kwargs):
+    def __init__(self,type="MSE",**kwargs): 
         self.type = type
         self.kwargs = kwargs
         if self.type == "MSE":

@@ -43,6 +43,9 @@ def read_graph_data(folder):
     # do not contain files with both format types
 
     fmt = [file[-3:] for file in os.listdir(folder) if (file[-3:]=='pkl' or file[-3:]=='npz')]
+    images = None
+    num_node_attr = 0
+    num_images = 0
     if fmt is 'npz':
         images = np.load(os.path.join(folder,"face_images.npz"))['face_images']
         tot_shape =images.shape
