@@ -79,7 +79,7 @@ class GNN(torch.nn.Module):
                 i-th element represents prediction at i-th position of the sequence.
         '''
         # input_dim=batched_data.x.size(0)
-
+        
         h_node = self.gnn_node(batched_data)
 
         h_graph = self.pool(h_node, batched_data.batch)

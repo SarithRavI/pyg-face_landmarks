@@ -20,7 +20,7 @@ class Evaluator:
         if self.type == "R2" and self.evaluator is None:
             if "multioutput" in self.kwargs.keys():
                 self.evaluator = R2Score(num_landmarks,self.kwargs["multioutput"])
-        else:
+        elif self.evaluator is None:
             self.evaluator = R2Score(num_landmarks)
         metric = 0
         for i,pred in enumerate(landmarks_pred_list):

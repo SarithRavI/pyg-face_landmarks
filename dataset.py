@@ -34,6 +34,12 @@ def split(data, batch):
 
     return data, slices
 
+def get_raw_fmt(folder):
+    # this restrict getting either one of pkl or npz format
+    fmt = [file[-3:] for file in os.listdir(folder) if (file[-3:]=='pkl' or file[-3:]=='npz')][0]
+    return fmt 
+
+
 def read_graph_data(folder):
     # import images  
 
@@ -42,27 +48,28 @@ def read_graph_data(folder):
     # and .npz contains a map with key 'face_images' -> (height,width,channels, # images)
     # do not contain files with both format types
 
-    fmt = [file[-3:] for file in os.listdir(folder) if (file[-3:]=='pkl' or file[-3:]=='npz')]
+    fmt = get_raw_fmt(folder)
     images = None
     num_node_attr = 0
     num_images = 0
-    if fmt is 'npz':
+    if fmt == 'npz':
         images = np.load(os.path.join(folder,"face_images.npz"))['face_images']
         tot_shape =images.shape
         if  len(tot_shape) > 3: # this is for RGB
             num_node_attr = tot_shape[2]
         else:
             num_node_attr = 1
-        num_images = len(images)
-    elif fmt is 'pkl':
+        num_images = tot_shape[-1]
+        
+    elif fmt == 'pkl':
         with open(os.path.join(folder,"face_images.pkl"), "rb") as fp:   # Unpickling
             images = pickle.load(fp)
-        tot_shape =images.shape
-        if  len(tot_shape) > 3: # this is for RGB
-            num_node_attr = tot_shape[3]
+        tot_shape =images[0].shape
+        if  len(tot_shape) > 2: # this is for RGB
+            num_node_attr = tot_shape[2]
         else:
             num_node_attr = 1
-        num_images = tot_shape[-1]
+        num_images = len(images)
     
     # import graph labels
     graph_labels = pd.read_csv(os.path.join(folder,"facial_keypoints.csv")).to_numpy()
@@ -79,9 +86,10 @@ def read_graph_data(folder):
     y = np.empty([0,num_labels],dtype=np.float32)
 
     for img_inx in tqdm(range(num_images)):
-        if fmt is 'pkl':
+        img_matrix = None
+        if fmt == 'pkl':
             img_matrix = images[img_inx]
-        elif fmt is 'npz':
+        elif fmt == 'npz':
             if len(tot_shape)>3:
                 img_matrix = images[:,:,:,img_inx]
             else:
@@ -93,7 +101,12 @@ def read_graph_data(folder):
         img_edge_index = img_to_pyg[0]
         # since we are getting the edge attributes from pyg 
         # we set the # of edge attributes to 1 by default
-        img_edge_attr = img_to_pyg[1].reshape(1,-1)
+
+        # print("edge attr original", img_to_pyg[1].shape)
+
+        img_edge_attr = img_to_pyg[1].reshape(-1,1) 
+
+        # print(print("edge attr reshaped",img_to_pyg[1].reshape(-1,1).shape))
             
         img_node_attr = img_matrix.reshape(-1,num_node_attr)
         x = np.vstack((x,img_node_attr))
@@ -122,9 +135,9 @@ def read_graph_data(folder):
     data = Data(x=x, edge_index=edge_index, edge_attr=edge_attr, y=y)
     data, slices = split(data, node_graph_id)
 
-    slices['edge_index']=torch.from_numpy(edge_slice).to(torch.int34)
+    slices['edge_index']=torch.from_numpy(edge_slice).to(torch.int32)
     if data.edge_attr is not None:
-        slices['edge_attr'] = torch.from_numpy(edge_slice).to(torch.int34)
+        slices['edge_attr'] = torch.from_numpy(edge_slice).to(torch.int32)
     
     return data, slices
 
@@ -161,7 +174,12 @@ class PygGraphPropPredDataset(InMemoryDataset):
 
     @property
     def raw_file_names(self):
-        names = ["face_images.npz","facial_keypoints.csv"]
+        fmt = get_raw_fmt(self.raw_dir)
+        names =[]
+        if fmt =='npz':
+            names = ["face_images.npz","facial_keypoints.csv"]
+        elif fmt =='pkl':
+            names = ["face_images.pkl","facial_keypoints.csv"]
         return names
 
     @property

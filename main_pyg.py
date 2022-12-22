@@ -27,8 +27,8 @@ def train(model, device, loader, optimizer):
     loss_accum = 0
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
-
-        if batch.x.shape[0] == 1 or batch.batch[-1] == 0:
+        print("training batch shape.. ",batch.x.shape,batch)
+        if batch.x.shape[0] == 1:
             pass
         else:
             output = model(batch)
@@ -53,7 +53,7 @@ def eval(model, device, loader, evaluator, isLogging=False,**kwargs):
 
     for step, batch in enumerate(loader):
         batch = batch.to(device)
-
+        print("batch shape.. ",batch.y.shape)
         if batch.x.shape[0] == 1:
             pass
         else:
@@ -122,7 +122,10 @@ def main():
     device = torch.device("cuda:" + str(args.device)) if torch.cuda.is_available() else torch.device("cpu")
 
     # change here to minimize the full dataset size
-    dataset = PygGraphPropPredDataset(root=args.rootdir,name = args.dataset)[:100]
+    dataset = PygGraphPropPredDataset(root=args.rootdir,name = args.dataset)
+    num_node_attr = dataset[0].x.shape[-1]
+    print("num node attr... ",num_node_attr)
+    num_edge_attr = dataset[0].edge_attr.shape[-1]
 
     num_landmarks = dataset.num_landmarks()
 
@@ -145,19 +148,20 @@ def main():
     eval_metric = "MSE" 
     evaluator = Evaluator(type=eval_metric,num_landmarks=num_landmarks,squared = True)
 
+    print("landmarks ",num_landmarks)
+
     train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
     valid_loader = DataLoader(dataset[split_idx["valid"]], batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
     test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
 
-
     if args.gnn == 'gin':
-        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=1,input_edge_dim = 1, gnn_type = 'gin', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
+        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gin', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
     elif args.gnn == 'gin-virtual':
-        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=1,input_edge_dim = 1, gnn_type = 'gin', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
+        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gin', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
     elif args.gnn == 'gcn':
-        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=1,input_edge_dim = 1, gnn_type = 'gcn', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
+        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gcn', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
     elif args.gnn == 'gcn-virtual':
-        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=1,input_edge_dim = 1, gnn_type = 'gcn', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
+        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gcn', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
     else:
         raise ValueError('Invalid GNN type')
 

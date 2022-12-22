@@ -39,15 +39,13 @@ class GCNConv(MessagePassing):
         super(GCNConv, self).__init__(aggr='add')
         if input_node_dim != emb_dim and input_edge_dim != emb_dim:
             self.linear = torch.nn.Linear(input_node_dim, emb_dim)
-            self.root_emb = torch.nn.Embedding(1, emb_dim)
+            self.root_emb = torch.nn.Embedding(1, input_node_dim)
+            self.edge_encoder = torch.nn.Linear(input_edge_dim, emb_dim)
             
         else:
             self.linear = torch.nn.Linear(emb_dim, emb_dim)
             self.root_emb = torch.nn.Embedding(1, emb_dim)
-            # self.edge_encoder = torch.nn.Linear(2, emb_dim)
-
-        self.edge_encoder = torch.nn.Linear(1, input_edge_dim)
-        
+            self.edge_encoder = torch.nn.Linear(emb_dim, emb_dim)
 
     def forward(self, x, edge_index, edge_attr):
         x = self.linear(x)
@@ -89,6 +87,8 @@ class GNN_node(torch.nn.Module):
         self.num_layer = num_layer
         self.drop_ratio = drop_ratio
         self.JK = JK
+        self.input_node_dim = input_node_dim
+        self.input_edge_dim = input_edge_dim
         ### add residual connection or not
         self.residual = residual
 
@@ -104,9 +104,9 @@ class GNN_node(torch.nn.Module):
         for layer in range(num_layer):
             if layer == 0:
                 if gnn_type == 'gin':
-                    self.convs.append(GINConv(emb_dim,input_node_dim=input_node_dim,input_edge_dim=input_edge_dim))
+                    self.convs.append(GINConv(emb_dim,input_node_dim=self.input_node_dim,input_edge_dim=self.input_edge_dim))
                 elif gnn_type == 'gcn':
-                    self.convs.append(GCNConv(emb_dim,input_node_dim=input_node_dim,input_edge_dim=input_edge_dim))
+                    self.convs.append(GCNConv(emb_dim,input_node_dim=self.input_node_dim,input_edge_dim=self.input_edge_dim))
             else:
                 if gnn_type == 'gin':
                     self.convs.append(GINConv(emb_dim,input_node_dim=emb_dim,input_edge_dim=emb_dim))
@@ -126,6 +126,7 @@ class GNN_node(torch.nn.Module):
         ### computing input node embedding
 
         # h_list = [self.node_encoder(x, node_depth.view(-1,))]
+        print(x.shape)
         h_list = [x] 
         for layer in range(self.num_layer):
 
