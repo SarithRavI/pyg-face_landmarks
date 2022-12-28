@@ -1,6 +1,8 @@
 from torchmetrics import R2Score,MeanSquaredError
 import torch
 
+from utils.reg_roc_auc_score import naive_roc_auc_score
+
 class Evaluator:
     def __init__(self,type="mse",**kwargs): 
         self.type = type
@@ -21,6 +23,10 @@ class Evaluator:
                 self.evaluator = R2Score(num_landmarks,self.kwargs["multioutput"])
             else:
                 self.evaluator = R2Score(num_landmarks)
+        
+        if self.type == 'roc-auc-naive' and self.evaluator is None:
+            metric = naive_roc_auc_score(landmarks_ref_list,landmarks_pred_list)
+            return metric 
         
         metric = 0
         for i,pred in enumerate(landmarks_pred_list):
