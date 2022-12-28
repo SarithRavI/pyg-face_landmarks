@@ -1,7 +1,7 @@
 from torchmetrics import R2Score,MeanSquaredError
 import torch
 
-from utils.reg_roc_auc_score import naive_roc_auc_score
+from utils.reg_roc_auc_score import naive_roc_auc_score,approx_roc_auc_score
 
 class Evaluator:
     def __init__(self,type="mse",**kwargs): 
@@ -27,7 +27,17 @@ class Evaluator:
         if self.type == 'roc-auc-naive' and self.evaluator is None:
             metric = naive_roc_auc_score(landmarks_ref_list,landmarks_pred_list)
             return metric 
-        
+
+        if 'roc-auc-approx' in self.type and self.evaluator is None:
+            trialCount = float(self.type.split('-')[-1])
+            trialCount_ratio = trialCount if trialCount < 1.0 and trialCount > 0.0 else None
+            if trialCount_ratio:
+                metric = approx_roc_auc_score(landmarks_ref_list,landmarks_pred_list,int(num_landmarks*trialCount_ratio))
+                return metric 
+            else:
+                metric = naive_roc_auc_score(landmarks_ref_list,landmarks_pred_list,int(num_landmarks*0.5))
+                return metric
+
         metric = 0
         for i,pred in enumerate(landmarks_pred_list):
             output = torch.tensor(pred)
