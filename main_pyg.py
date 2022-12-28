@@ -28,6 +28,10 @@ def train(model, device, loader, optimizer):
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
         print("training batch shape.. ",batch.x.shape,batch)
+        # ideally the control should do following checks
+        # 1. check  if batch.x.shape[0] ==1
+        # 2. batch has only one graph 
+        # if so pass 
         if batch.x.shape[0] == 1:
             pass
         else:
@@ -114,6 +118,9 @@ def main():
     
     parser.add_argument('--filedir', type=str, default="",
                         help='filename to output result (default: )')
+
+    parser.add_argument('--metric', type=str, default="mse",
+                        help='evaluation metric to be used')
     args = parser.parse_args()
     print(args)
 
@@ -145,8 +152,8 @@ def main():
     ### automatic evaluator. takes dataset name as input
     #  Set this either to MSE or R2
     # include keyword arg squared = True if mse otherwise rmse
-    eval_metric = "MSE" 
-    evaluator = Evaluator(type=eval_metric,num_landmarks=num_landmarks,squared = True)
+    eval_metric = args.metric
+    evaluator = Evaluator(type=eval_metric,num_landmarks=num_landmarks)
 
     print("landmarks ",num_landmarks)
 

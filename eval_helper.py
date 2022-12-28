@@ -2,14 +2,13 @@ from torchmetrics import R2Score,MeanSquaredError
 import torch
 
 class Evaluator:
-    def __init__(self,type="MSE",**kwargs): 
+    def __init__(self,type="mse",**kwargs): 
         self.type = type
         self.kwargs = kwargs
-        if self.type == "MSE":
-            if "squared" in self.kwargs:
-                self.evaluator = MeanSquaredError(squared = self.kwargs["squared"])
-            else:
-                self.evaluator = MeanSquaredError()
+        if self.type == "mse":
+            self.evaluator = MeanSquaredError(squared = True)
+        elif self.type == 'rmse':
+             self.evaluator = MeanSquaredError()
 
     def eval(self,input_dict):
         
@@ -20,8 +19,9 @@ class Evaluator:
         if self.type == "R2" and self.evaluator is None:
             if "multioutput" in self.kwargs.keys():
                 self.evaluator = R2Score(num_landmarks,self.kwargs["multioutput"])
-        elif self.evaluator is None:
-            self.evaluator = R2Score(num_landmarks)
+            else:
+                self.evaluator = R2Score(num_landmarks)
+        
         metric = 0
         for i,pred in enumerate(landmarks_pred_list):
             output = torch.tensor(pred)
