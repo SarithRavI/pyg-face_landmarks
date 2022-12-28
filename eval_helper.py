@@ -18,7 +18,7 @@ class Evaluator:
         landmarks_pred_list = input_dict["landmark_pred"]
         num_landmarks = self.kwargs["num_landmarks"]
 
-        if self.type == "R2" and self.evaluator is None:
+        if self.type == "r2" and self.evaluator is None:
             if "multioutput" in self.kwargs.keys():
                 self.evaluator = R2Score(num_landmarks,self.kwargs["multioutput"])
             else:
