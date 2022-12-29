@@ -9,12 +9,13 @@ python main_pyg.py --gnn gcn --batch_size 20 --epochs 2 --rootdir <path_to_root_
 
 Note:
 Available evaluation metric are:
-    - mse 
-    - rmse 
-    - r2 
-    - roc-auc-naive 
-    - roc-auc-approx-<--ratio-->
-        Add a float (>0.0 and <1.0) in place of the <--ratio--> placeholder. 
+- mse 
+- rmse 
+- r2 
+- roc-auc-naive 
+- roc-auc-approx-<--ratio-->
+
+Add a float (>0.0 and <1.0) in place of the <--ratio--> placeholder. 
 
 Here we use generalized roc-auc score in our regression task.
 roc-auc-naive metric O(n^2) complex. 
