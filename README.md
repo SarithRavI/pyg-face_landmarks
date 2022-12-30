@@ -3,8 +3,7 @@ GNN implementation for Face Landmark detection
 
 
 Run: 
-python main_pyg.py --gnn gcn --batch_size 20 --epochs 2 --rootdir <path_to_root_dir> --dataset <dataset_name> --filedir <path_to_output_saving_dir>
-                   --metric <metric as str>
+python main_pyg.py --gnn gcn --batch_size 20 --epochs 2 --rootdir <path_to_root_dir> --dataset <dataset_name> --filedir <path_to_output_saving_dir> --metric roc-auc-approx-0.5 --emb_dim 400 --num_layer 3
 
 
 Note:
