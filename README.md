@@ -20,3 +20,6 @@ Here we use generalized roc-auc score in our regression task.
 roc-auc-naive metric is O(n^2) complex. 
 So we introduced roc-auc-approx metric which will approximate the roc-auc-naive.
 closer the provided ratio to 1.0, better the approximation. (default ratio is set to 0.5).
+
+User raw images in testing/ directory for testing purposes.
+This raw dataset contains 10 RGB images.
