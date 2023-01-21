@@ -37,15 +37,10 @@ class GINConv(MessagePassing):
 class GCNConv(MessagePassing):
     def __init__(self, emb_dim,input_node_dim,input_edge_dim):
         super(GCNConv, self).__init__(aggr='add')
-        if input_node_dim != emb_dim and input_edge_dim != emb_dim:
-            self.linear = torch.nn.Linear(input_node_dim, emb_dim)
-            self.root_emb = torch.nn.Embedding(1, input_node_dim)
-            self.edge_encoder = torch.nn.Linear(input_edge_dim, emb_dim)
-            
-        else:
-            self.linear = torch.nn.Linear(emb_dim, emb_dim)
-            self.root_emb = torch.nn.Embedding(1, emb_dim)
-            self.edge_encoder = torch.nn.Linear(emb_dim, emb_dim)
+        
+        self.linear = torch.nn.Linear(input_node_dim, emb_dim)
+        self.root_emb = torch.nn.Embedding(1, emb_dim)
+        self.edge_encoder = torch.nn.Linear(input_edge_dim, emb_dim)
 
     def forward(self, x, edge_index, edge_attr):
         x = self.linear(x)
@@ -109,9 +104,9 @@ class GNN_node(torch.nn.Module):
                     self.convs.append(GCNConv(emb_dim,input_node_dim=self.input_node_dim,input_edge_dim=self.input_edge_dim))
             else:
                 if gnn_type == 'gin':
-                    self.convs.append(GINConv(emb_dim,input_node_dim=emb_dim,input_edge_dim=emb_dim))
+                    self.convs.append(GINConv(emb_dim,input_node_dim=emb_dim,input_edge_dim=self.input_edge_dim))
                 elif gnn_type == 'gcn':
-                    self.convs.append(GCNConv(emb_dim,input_node_dim=emb_dim,input_edge_dim=emb_dim))
+                    self.convs.append(GCNConv(emb_dim,input_node_dim=emb_dim,input_edge_dim=self.input_edge_dim))
                 else:
                     raise ValueError('Undefined GNN type called {}'.format(gnn_type))
 
