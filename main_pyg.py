@@ -27,7 +27,6 @@ def train(model, device, loader, optimizer):
     loss_accum = 0
     for step, batch in enumerate(tqdm(loader, desc="Iteration")):
         batch = batch.to(device)
-        print("training batch shape.. ",batch.x.shape,batch)
         # ideally the control should do following checks
         # 1. check  if batch.x.shape[0] ==1
         # 2. batch has only one graph 
@@ -131,7 +130,6 @@ def main():
     # change here to minimize the full dataset size
     dataset = PygGraphPropPredDataset(root=args.rootdir,name = args.dataset)
     num_node_attr = dataset[0].x.shape[-1]
-    print("num node attr... ",num_node_attr)
     num_edge_attr = dataset[0].edge_attr.shape[-1]
 
     num_landmarks = dataset.num_landmarks()
@@ -154,8 +152,6 @@ def main():
     # include keyword arg squared = True if mse otherwise rmse
     eval_metric = args.metric
     evaluator = Evaluator(type=eval_metric,num_landmarks=num_landmarks)
-
-    print("landmarks ",num_landmarks)
 
     train_loader = DataLoader(dataset[split_idx["train"]], batch_size=args.batch_size, shuffle=True, num_workers = args.num_workers)
     valid_loader = DataLoader(dataset[split_idx["valid"]], batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
