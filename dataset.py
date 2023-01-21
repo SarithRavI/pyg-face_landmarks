@@ -52,13 +52,16 @@ def read_graph_data(folder):
     images = None
     num_node_attr = 0
     num_images = 0
+    tot_shape = 0
     if fmt == 'npz':
         images = np.load(os.path.join(folder,"face_images.npz"))['face_images']
         tot_shape =images.shape
         if  len(tot_shape) > 3: # this is for RGB
             num_node_attr = tot_shape[2]
+            num_edge_attr = tot_shape[2]
         else:
             num_node_attr = 1
+            num_edge_attr = 1
         num_images = tot_shape[-1]
         
     elif fmt == 'pkl':
@@ -67,15 +70,17 @@ def read_graph_data(folder):
         tot_shape =images[0].shape
         if  len(tot_shape) > 2: # this is for RGB
             num_node_attr = tot_shape[2]
+            num_edge_attr = tot_shape[2]
         else:
             num_node_attr = 1
+            num_edge_attr = 1
         num_images = len(images)
     
     # import graph labels
     graph_labels = pd.read_csv(os.path.join(folder,"facial_keypoints.csv")).to_numpy()
 
     # by default number of edge attributes are 1
-    num_edge_attr = 1
+    
 
     num_labels = graph_labels.shape[-1]
     x = np.empty([0,num_node_attr])
@@ -85,28 +90,45 @@ def read_graph_data(folder):
     edge_slice = np.array([0])
     y = np.empty([0,num_labels],dtype=np.float32)
 
+    # variable to reduce if checks..
+    append_edge_attr = False
+
     for img_inx in tqdm(range(num_images)):
         img_matrix = None
         if fmt == 'pkl':
-            img_matrix = images[img_inx]
+            if len(tot_shape)>2:
+                img_matrix = images[img_inx]
+                img_matrix_2d = img_matrix[:,:,0]
+                append_edge_attr = True
+            else:
+                img_matrix = images[img_inx]
+                img_matrix_2d = img_matrix
+            
         elif fmt == 'npz':
             if len(tot_shape)>3:
                 img_matrix = images[:,:,:,img_inx]
+                img_matrix_2d = img_matrix[:,:,0]
+                append_edge_attr = True
             else:
                 img_matrix = images[:,:,img_inx]
+                img_matrix_2d = img_matrix
 
-        img_graph = img_to_graph(img = img_matrix)
+        img_graph = img_to_graph(img = img_matrix_2d)
         img_to_pyg = from_scipy_sparse_matrix(img_graph)
 
         img_edge_index = img_to_pyg[0]
         # since we are getting the edge attributes from pyg 
         # we set the # of edge attributes to 1 by default
 
-        # print("edge attr original", img_to_pyg[1].shape)
-
         img_edge_attr = img_to_pyg[1].reshape(-1,1) 
+        if(append_edge_attr):
+            for channel in range(1,tot_shape[2]):
+                img_graph_ = img_to_graph(img = img_matrix[:,:,channel])
+                img_to_pyg_ = from_scipy_sparse_matrix(img_graph_)
+                img_edge_attr_ = img_to_pyg_[1].reshape(-1,1) 
+                img_edge_attr = torch.tensor(np.hstack((img_edge_attr.numpy(),img_edge_attr_.numpy())))
 
-        # print(print("edge attr reshaped",img_to_pyg[1].reshape(-1,1).shape))
+
             
         img_node_attr = img_matrix.reshape(-1,num_node_attr)
         x = np.vstack((x,img_node_attr))
