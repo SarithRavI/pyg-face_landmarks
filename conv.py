@@ -121,7 +121,6 @@ class GNN_node(torch.nn.Module):
         ### computing input node embedding
 
         # h_list = [self.node_encoder(x, node_depth.view(-1,))]
-        print(x.shape)
         h_list = [x] 
         for layer in range(self.num_layer):
 

@@ -56,7 +56,6 @@ def eval(model, device, loader, evaluator, isLogging=False,**kwargs):
 
     for step, batch in enumerate(loader):
         batch = batch.to(device)
-        print("batch shape.. ",batch.y.shape)
         if batch.x.shape[0] == 1:
             pass
         else:
