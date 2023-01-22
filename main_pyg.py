@@ -87,7 +87,7 @@ def eval(model, device, loader, evaluator, isLogging=False,**kwargs):
 
 def main():
     # Training settings
-    parser = argparse.ArgumentParser(description='GNN baselines on ogbg-code2 data with Pytorch Geometrics')
+    parser = argparse.ArgumentParser(description='')
     parser.add_argument('--device', type=int, default=0,
                         help='which gpu to use if any (default: 0)')
     parser.add_argument('--gnn', type=str, default='gcn',
