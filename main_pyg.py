@@ -104,6 +104,8 @@ def main():
                         help='number of GNN message passing layers (default: 5)')
     parser.add_argument('--emb_dim', type=int, default=300,
                         help='dimensionality of hidden units in GNNs (default: 300)')
+    parser.add_argument('--lr', type=float, default=1e-3,
+                        help='Learning rate (default: 1e-3)')
     parser.add_argument('--batch_size', type=int, default=5,
                         help='input batch size for training (default: 128)')
     parser.add_argument('--epochs', type=int, default=25,
@@ -173,7 +175,7 @@ def main():
     else:
         raise ValueError('Invalid GNN type')
 
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     print(f'#Params: {sum(p.numel() for p in model.parameters())}')
 
