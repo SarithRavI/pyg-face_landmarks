@@ -43,6 +43,10 @@ class Evaluator:
             output = torch.tensor(pred)
             target = torch.tensor(landmarks_ref_list[i])
             metric += self.evaluator(output,target).item()
+
+        del landmarks_pred_list
+        del landmarks_ref_list
+        
         return metric
 
 

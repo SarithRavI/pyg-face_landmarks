@@ -47,6 +47,9 @@ def train(model, device, loader, optimizer):
 
             loss_accum += loss.item()
 
+            del loss 
+            del output
+
     print('Average training loss: {}'.format(loss_accum / (step + 1)))
 
 def eval(model, device, loader, evaluator, isLogging=False,**kwargs):
@@ -70,8 +73,11 @@ def eval(model, device, loader, evaluator, isLogging=False,**kwargs):
                     pred_to_eval.append(output[inx][notTrueInx].tolist())
                     target_to_eval.append(batch.y[inx][notTrueInx].tolist())
 
+            del output
+            
             landmarks_ref_list.extend(target_to_eval)
             landmarks_pred_list.extend(pred_to_eval)
+
 
     input_dict = {"landmark_ref": landmarks_ref_list, "landmark_pred": landmarks_pred_list}
 
