@@ -68,6 +68,8 @@ class GNN(torch.nn.Module):
         #     for i in range(max_seq_len):
         #          self.graph_pred_linear_list.append(torch.nn.Linear(emb_dim, self.num_vocab))
         else:
+            for i in range(num_fnn_layers-1):
+                self.graph_pred_linear_list.append(torch.nn.Linear(emb_dim, emb_dim))
             self.graph_pred_linear_list.append(torch.nn.Linear(emb_dim, self.num_landmarks))
                 
 
