@@ -102,6 +102,8 @@ def main():
                         help='dropout ratio (default: 0)')
     parser.add_argument('--num_layer', type=int, default=5,
                         help='number of GNN message passing layers (default: 5)')
+    parser.add_argument('--num_post_fnn', type=int, default=1,
+                        help='number of fnn layers used for post processing (default: 1)')
     parser.add_argument('--emb_dim', type=int, default=300,
                         help='dimensionality of hidden units in GNNs (default: 300)')
     parser.add_argument('--lr', type=float, default=1e-3,
@@ -165,13 +167,13 @@ def main():
     test_loader = DataLoader(dataset[split_idx["test"]], batch_size=args.batch_size, shuffle=False, num_workers = args.num_workers)
 
     if args.gnn == 'gin':
-        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gin', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
+        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer,num_fnn_layers=args.num_post_fnn, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gin', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
     elif args.gnn == 'gin-virtual':
-        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gin', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
+        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer,num_fnn_layers=args.num_post_fnn, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gin', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
     elif args.gnn == 'gcn':
-        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gcn', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
+        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer,num_fnn_layers=args.num_post_fnn, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gcn', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = False).to(device)
     elif args.gnn == 'gcn-virtual':
-        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gcn', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
+        model = GNN(num_landmarks = num_landmarks, num_layer = args.num_layer,num_fnn_layers=args.num_post_fnn, input_node_dim=num_node_attr,input_edge_dim = num_edge_attr, gnn_type = 'gcn', emb_dim = args.emb_dim, drop_ratio = args.drop_ratio, virtual_node = True).to(device)
     else:
         raise ValueError('Invalid GNN type')
 
